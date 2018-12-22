@@ -34,17 +34,9 @@ import datetime
 
 # Create a receiver object, connecting to the host
 
-receiver = eiscp.eISCP('192.168.1.16')
 
 def timestamp():
 	return datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
-
-def onkyo_source(source):
-	print 'got onkyo source', source, timestamp()
-
-	receiver.command('source '+source)
-
-	receiver.disconnect()
 
 
 
@@ -149,6 +141,23 @@ def vol(direction, num_range=False):
     time.sleep(0.1)
 
 
+receiver = eiscp.eISCP('192.168.1.16')
+
+def onkyo_source(source):
+	print 'got onkyo source', source, timestamp()
+	if source.lower() == 'xbox':
+		source = 'game'
+
+	receiver.command('source '+source)
+
+	receiver.disconnect()
+
+
+def onkyo_vol(vol):
+	print 'got onkyo vol', vol, timestamp()
+	receiver.command('volume '+vol)
+
+
 class TVHandler(tornado.web.RequestHandler):
     
     
@@ -161,6 +170,8 @@ class TVHandler(tornado.web.RequestHandler):
         self.set_header('Access-Control-Allow-Methods', 'POST, GET, OPTIONS')
     #
     
+
+
     def get(self):
 #        key = self.get_argument("key")
         f = self.get_argument("f")
@@ -168,8 +179,18 @@ class TVHandler(tornado.web.RequestHandler):
         arg=self.get_argument("arg", True, None)
 #         if key:
 #             push('KEY_'+key)
+
+
+
+
+
+
+
         if f == 'stereo_source':
         	onkyo_source(arg)
+
+        if f == 'stereo_vol':
+        	onkyo_vol(arg)
 
 
         if f == 'xbox':
