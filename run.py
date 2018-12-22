@@ -3,7 +3,7 @@ import tornado
 import tornado.web
 import json
 import os
-from pip._vendor.requests.sessions import session
+from requests.sessions import session
 os.environ['TZ'] = 'US/Eastern'
 
 
@@ -30,12 +30,18 @@ tv      = 'UN55ES6160'          # iphone.LE32C650.iapp.samsung
 
 
 import eiscp
+import datetime
 
 # Create a receiver object, connecting to the host
-receiver = eiscp.eISCP('192.168.1.125')
 
+receiver = eiscp.eISCP('192.168.1.16')
+
+def timestamp():
+	return datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
 
 def onkyo_source(source):
+	print 'got onkyo source', source, timestamp()
+
 	receiver.command('source '+source)
 
 	receiver.disconnect()
@@ -165,7 +171,7 @@ class TVHandler(tornado.web.RequestHandler):
         if f == 'stereo_source':
         	onkyo_source(arg)
 
-        	
+
         if f == 'xbox':
             xbox()
         if f == 'tv':
