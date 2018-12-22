@@ -19,10 +19,10 @@ import time
 import socket
 import base64
 
-src     = '192.168.1.66'       # ip of remote
+src     = '192.168.1.100'       # ip of remote
 mac     = '00-AB-11-11-11-11' # mac of remote
 remote  = 'python remote'     # remote name
-dst     = '192.168.1.9'       # ip of tv
+dst     = '192.168.1.19'       # ip of tv
 
 app_     = 'python'            # iphone..iapp.samsung
 # tv      = 'LE32C650'          # iphone.LE32C650.iapp.samsung
@@ -75,45 +75,11 @@ def xbox():
     time.sleep(0.2)
     push('KEY_ENTER')
     
-def pc():
-    push('KEY_TV')
-    time.sleep(0.2)
-    push('KEY_SOURCE')
-    time.sleep(0.2)
-    push('KEY_DOWN')
-#    time.sleep(0.2)
-#    push('KEY_DOWN')
-    time.sleep(0.2)
-    push('KEY_DOWN')
-    time.sleep(0.2)
-    push('KEY_ENTER')
-
-def chromecast():
-    push('KEY_TV')
-    time.sleep(0.2)
-    push('KEY_SOURCE')
-#    time.sleep(0.2)
-#    push('KEY_DOWN')
-    time.sleep(0.2)
-    push('KEY_DOWN')
-    time.sleep(0.2)
-    push('KEY_DOWN')
-    time.sleep(0.2)
-    push('KEY_DOWN')
-    time.sleep(0.2)
-    push('KEY_ENTER')
 
 def antenna():
     push('KEY_TV')
     time.sleep(0.1)
     push('KEY_ENTER')
-
-def ch(number):
-    if number == 'up':
-        push('KEY_CHUP')
-    if  number == 'down':
-        push('KEY_CHDOWN')
-    time.sleep(0.1)
 
 def vol(direction, num_range=False):
     
@@ -140,6 +106,10 @@ def vol(direction, num_range=False):
         
     time.sleep(0.1)
 
+def tv_power(arg):
+	print 'got tv_power', arg, timestamp()
+	push('KEY_POWEROFF')
+	time.sleep(0.2)
 
 receiver = eiscp.eISCP('192.168.1.16')
 
@@ -148,7 +118,7 @@ def onkyo_source(source):
 	if source.lower() == 'xbox':
 		source = 'game'
 
-	receiver.command('source '+source)
+	receiver.command('source '+source.lower())
 
 	receiver.disconnect()
 
@@ -157,6 +127,7 @@ def onkyo_vol(vol):
 	print 'got onkyo vol', vol, timestamp()
 	receiver.command('volume '+vol)
 
+	
 
 class TVHandler(tornado.web.RequestHandler):
     
@@ -175,7 +146,6 @@ class TVHandler(tornado.web.RequestHandler):
     def get(self):
 #        key = self.get_argument("key")
         f = self.get_argument("f")
-        num_range=self.get_argument("num_range", True, None)
         arg=self.get_argument("arg", True, None)
 #         if key:
 #             push('KEY_'+key)
@@ -191,47 +161,16 @@ class TVHandler(tornado.web.RequestHandler):
 
         if f == 'stereo_vol':
         	onkyo_vol(arg)
+        if f == 'stereo_cec':
+        	onkyo_cec(arg)
 
 
-        if f == 'xbox':
-            xbox()
-        if f == 'tv':
-            antenna()
-        if f == 'pc':
-            pc()
-        if f == 'chromecast':
-            chromecast()
-        
-        if f == 'chup':
-            ch('up')
-        if f == 'chdown':
-            ch('down')
-
-        if f == 'volup':
-            vol('up')
-            
-        if f == 'voldown':
-            vol('up')
-            
-        if f == 'volup':
-            vol('up')
-        
-        if f == 'voldown':
-            vol('down')
-            
-        if f == 'volmute':
-            vol('mute')
-            
-        if f == 'voluprange':
-            vol('uprange',num_range)
-            
-        if f == 'voldownrange':
-            vol('downrange',num_range)
+        if f == 'tv_power':
+            tv_power(arg)
         
         
         
-        
-        res = {'key':f}
+        res = {'f':f,'arg':arg}
         
         self.write(json.dumps(res))
 #        self.render("index.html")
